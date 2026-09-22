@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import gsap from 'gsap';
 import toast from 'react-hot-toast';
@@ -7,21 +7,21 @@ import { FiArrowLeft, FiShoppingCart } from 'react-icons/fi';
 import { StarRating } from '../components/StarRating';
 import { QuantityStepper } from '../components/QuantityStepper';
 import { PRODUCTS } from '../data/products';
-import { useCart } from '../context/CartContext';
-import { useFavorites } from '../context/FavoritesContext';
-import { useFadeIn } from '../hooks/useFadeIn';
+import { CartContext } from '../context/CartContext';
+import { FavoritesContext } from '../context/FavoritesContext';
 import { formatPrice } from '../utils/format';
 
 export function ProductPage() {
   // useParams lee ":id" desde la URL, ej: /producto/3 -> id === "3"
+  // Viene como texto, por eso el Number(id) para comparar con el id numérico.
   const { id } = useParams();
   const producto = PRODUCTS.find((p) => p.id === Number(id));
 
   const [cantidad, setCantidad] = useState(1);
-  const { addItem } = useCart();
-  const { isFavorite, toggleFavorite } = useFavorites();
+  const { addItem } = useContext(CartContext);
+  const { isFavorite, toggleFavorite } = useContext(FavoritesContext);
+
   const botonRef = useRef(null);
-  const contenidoRef = useFadeIn({ y: 24 });
 
   useEffect(() => {
     document.title = producto ? `${producto.nombre} · SoundGear` : 'Producto no encontrado';
@@ -45,6 +45,8 @@ export function ProductPage() {
   function handleAgregar() {
     addItem(producto, cantidad);
     toast.success(`${cantidad} × ${producto.nombre} agregado al carrito`);
+
+    // Animación por evento: se dispara al hacer clic, no necesita useEffect.
     gsap.fromTo(
       botonRef.current,
       { scale: 1 },
@@ -59,7 +61,7 @@ export function ProductPage() {
           <FiArrowLeft /> Volver al catálogo
         </Link>
 
-        <div ref={contenidoRef} className="product-detail">
+        <div className="product-detail">
           <img src={producto.imagen} alt={producto.nombre} />
 
           <div className="product-detail-info">

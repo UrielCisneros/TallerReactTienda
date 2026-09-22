@@ -1,23 +1,20 @@
-import { useEffect, useRef } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import { NavLink } from 'react-router-dom';
 import gsap from 'gsap';
 import { FiShoppingCart, FiHeart } from 'react-icons/fi';
-import { useCart } from '../context/CartContext';
+import { CartContext } from '../context/CartContext';
 
 export function Navbar() {
-  const { totalItems } = useCart();
+  // Así se lee el Context: useContext(NombreDelContext).
+  // Navbar NO recibe nada por props y aun así sabe cuántos productos
+  // hay en el carrito. Eso es exactamente lo que resuelve Context.
+  const { totalItems } = useContext(CartContext);
+
   const badgeRef = useRef(null);
-  const primerRenderRef = useRef(true);
 
   // useEffect que reacciona a un cambio de estado que vive en OTRO
-  // componente (CartProvider). Buen ejemplo de cómo Context "conecta"
-  // partes de la app que no son padre-hijo directo.
+  // componente (CartProvider): cada vez que cambia el número, animamos.
   useEffect(() => {
-    if (primerRenderRef.current) {
-      // Evitamos animar en el primer render, solo cuando el número cambia de verdad.
-      primerRenderRef.current = false;
-      return;
-    }
     if (!badgeRef.current) return;
 
     gsap.fromTo(

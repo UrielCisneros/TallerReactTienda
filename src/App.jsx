@@ -14,8 +14,8 @@ import { FavoritesProvider } from './context/FavoritesContext';
 /**
  * Los Providers envuelven TODA la app aquí arriba, en el componente raíz.
  * Así, cualquier componente en cualquier página (Navbar, ProductCard,
- * CartPage...) puede usar useCart() / useFavorites() sin recibir nada
- * por props.
+ * CartPage...) puede leer el carrito y los favoritos con useContext,
+ * sin recibir nada por props.
  */
 function App() {
   return (

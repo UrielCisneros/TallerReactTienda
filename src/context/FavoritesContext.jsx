@@ -1,39 +1,41 @@
-import { createContext, useContext } from 'react';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { createContext, useEffect, useState } from 'react';
 
 /**
  * Mismo patrón que CartContext, a propósito: una vez que el grupo entiende
- * "Context + custom hook + useLocalStorage" en el carrito, este archivo
- * es ideal para que ellos lo repliquen en vivo durante la Hora 6.
+ * "createContext + Provider + useContext" en el carrito, este archivo es
+ * ideal para que ellos lo repliquen en vivo durante la Hora 6.
+ *
+ * Aquí solo guardamos los IDs de los productos favoritos, no el producto
+ * completo. Con el id podemos buscar el producto en PRODUCTS cuando lo
+ * necesitemos.
  */
-const FavoritesContext = createContext(null);
+export const FavoritesContext = createContext();
 
 export function FavoritesProvider({ children }) {
-  const [favoritos, setFavoritos] = useLocalStorage('soundgear-favoritos', []);
+  const [favoritos, setFavoritos] = useState(() => {
+    const guardado = localStorage.getItem('soundgear-favoritos');
+    return guardado ? JSON.parse(guardado) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('soundgear-favoritos', JSON.stringify(favoritos));
+  }, [favoritos]);
 
   function toggleFavorite(id) {
-    setFavoritos((prev) =>
-      prev.includes(id) ? prev.filter((favId) => favId !== id) : [...prev, id]
-    );
+    if (favoritos.includes(id)) {
+      setFavoritos(favoritos.filter((favId) => favId !== id));
+    } else {
+      setFavoritos([...favoritos, id]);
+    }
   }
 
   function isFavorite(id) {
     return favoritos.includes(id);
   }
 
-  const value = { favoritos, toggleFavorite, isFavorite };
-
   return (
-    <FavoritesContext.Provider value={value}>
+    <FavoritesContext.Provider value={{ favoritos, toggleFavorite, isFavorite }}>
       {children}
     </FavoritesContext.Provider>
   );
-}
-
-export function useFavorites() {
-  const context = useContext(FavoritesContext);
-  if (!context) {
-    throw new Error('useFavorites debe usarse dentro de <FavoritesProvider>');
-  }
-  return context;
 }

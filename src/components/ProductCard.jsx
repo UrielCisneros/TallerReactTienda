@@ -1,17 +1,18 @@
-import { useRef } from 'react';
+import { useContext, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { FiShoppingCart } from 'react-icons/fi';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { StarRating } from './StarRating';
-import { useCart } from '../context/CartContext';
-import { useFavorites } from '../context/FavoritesContext';
+import { CartContext } from '../context/CartContext';
+import { FavoritesContext } from '../context/FavoritesContext';
 import { formatPrice } from '../utils/format';
 
 export function ProductCard({ producto }) {
-  const { addItem } = useCart();
-  const { isFavorite, toggleFavorite } = useFavorites();
+  const { addItem } = useContext(CartContext);
+  const { isFavorite, toggleFavorite } = useContext(FavoritesContext);
+
   const cardRef = useRef(null);
   const favorito = isFavorite(producto.id);
 

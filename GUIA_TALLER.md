@@ -11,6 +11,13 @@ hacer un `git init` y armar el proyecto commit por commit durante el taller.
 
 Ritmo sugerido: 6 bloques de ~50 min + 10 min de descanso/preguntas.
 
+> **Nota sobre el nivel.** El proyecto está escrito a propósito con el mínimo
+> de abstracciones: no hay custom hooks, ni `useMemo`, ni `useReducer`, ni
+> wrappers alrededor de `useContext`. Todo lo que hace un componente está
+> escrito dentro de ese componente, para que el grupo pueda leerlo de arriba
+> a abajo sin saltar entre archivos. Si tu grupo avanza rápido, los "Retos
+> extra" del final incluyen justamente esas abstracciones.
+
 ---
 
 ## Hora 1 — Fundamentos: Vite, JSX, componentes y props
@@ -23,11 +30,12 @@ Temas a explicar:
 - JSX no es HTML: es azúcar sintáctica sobre `React.createElement`.
 - Componentes funcionales como funciones que devuelven JSX.
 - Props: datos que fluyen de padre a hijo, de solo lectura.
+- `.map()` para pintar listas, y por qué React pide una `key`.
 
 Archivos guía (constrúyelos en vivo, ya existen como referencia):
 - [`src/data/products.js`](./src/data/products.js) — datos "mock", para no depender de un backend.
 - [`src/components/StarRating.jsx`](./src/components/StarRating.jsx) — el componente más simple del proyecto: solo recibe `value` y renderiza. Ideal para la primera demo de props.
-- [`src/components/ProductCard.jsx`](./src/components/ProductCard.jsx) — muéstralo primero SIN los hooks de carrito/favoritos (solo imagen, nombre, precio) y ve agregando complejidad en las horas siguientes.
+- [`src/components/ProductCard.jsx`](./src/components/ProductCard.jsx) — muéstralo primero SIN carrito ni favoritos (solo imagen, nombre, precio) y ve agregando complejidad en las horas siguientes.
 
 Reto en vivo: pedir al grupo que arme un `ProductCard` mínimo que reciba
 `producto` por props y muestre nombre + precio, usando `.map()` sobre
@@ -44,6 +52,7 @@ Temas a explicar:
 - Manejo de eventos (`onClick`, `onChange`).
 - Inputs controlados: el valor del input SIEMPRE viene de React.
 - Renderizado condicional (`{lista.length === 0 && ...}`).
+- **Valores derivados**: `productosFiltrados` en `Home` es una variable normal, no un `useState`. Regla simple para el grupo: *si lo puedes calcular a partir del estado, no lo guardes como estado.*
 
 Archivos guía:
 - [`src/components/SearchBar.jsx`](./src/components/SearchBar.jsx) — input controlado clásico.
@@ -64,36 +73,46 @@ Temas a explicar:
 - `useEffect`: código que corre *después* del render, para sincronizar con algo externo a React (aquí: `document.title`).
 - El arreglo de dependencias: qué pasa con `[]`, sin arreglo, y con valores adentro.
 - El problema de "prop drilling": ¿cómo comparten estado un botón dentro de una tarjeta de producto y el contador del navbar, si no son padre-hijo directos?
-- Context API como solución: `createContext`, `Provider`, `useContext`.
-- Patrón de custom hook para consumir un contexto (`useCart`) en vez de usar `useContext` directo en cada componente.
+- Context API en **3 pasos**, sin nada más:
+  1. `createContext()` — crea el canal.
+  2. `<CartContext.Provider value={{ ... }}>` — pone datos en el canal.
+  3. `useContext(CartContext)` — cualquier hijo, a cualquier profundidad, lee del canal.
 
 Archivos guía:
-- [`src/pages/Home.jsx`](./src/pages/Home.jsx) línea del `useEffect` que cambia `document.title`.
+- [`src/pages/Home.jsx`](./src/pages/Home.jsx) — el `useEffect` que cambia `document.title`.
 - [`src/context/CartContext.jsx`](./src/context/CartContext.jsx) — el archivo central de esta hora. Recórranlo función por función: `addItem`, `removeItem`, `updateQuantity`, `clearCart`.
-- [`src/components/Navbar.jsx`](./src/components/Navbar.jsx) — consume `useCart()` para mostrar el contador, sin recibir nada por props.
+- [`src/components/Navbar.jsx`](./src/components/Navbar.jsx) — llama a `useContext(CartContext)` para mostrar el contador, sin recibir nada por props. Este es el momento "ajá".
 
 Ejercicio guiado: agregar el `CartProvider` en [`src/App.jsx`](./src/App.jsx)
 envolviendo la app, y conectar el botón "Agregar" de `ProductCard` a
 `addItem`.
 
+Truco de clase: quita temporalmente el `<CartProvider>` de `App.jsx` y muestra
+el error que aparece. Sirve para que entiendan que `useContext` solo funciona
+**dentro** del Provider.
+
 ---
 
-## Hora 4 — Persistencia y hooks personalizados
+## Hora 4 — Inmutabilidad y persistencia con `localStorage`
 
-**Objetivo:** que entiendan que un custom hook es solo una función que reutiliza lógica con estado.
+**Objetivo:** que entiendan por qué el estado se reemplaza y nunca se muta, y cómo guardar datos entre recargas.
 
 Temas a explicar:
-- `localStorage`: API del navegador, `getItem`/`setItem`, todo se guarda como string (`JSON.stringify` / `JSON.parse`).
-- Cómo construir un custom hook: empieza con `use`, por dentro usa otros hooks.
-- `useRef` como "caja" que persiste entre renders sin causar un re-render al cambiar (contraste directo con `useState`).
+- Actualizar estado sin mutar: `[...items, nuevo]`, `.map()` para modificar uno, `.filter()` para quitar. Recorran `addItem` en `CartContext` con calma — ahí están los tres patrones juntos.
+- Por qué `items.push(...)` **no** funciona (React compara referencias; si el arreglo es el mismo, no re-renderiza).
+- `localStorage`: API del navegador, `getItem`/`setItem`, todo se guarda como string → `JSON.stringify` / `JSON.parse`.
+- Los dos pedazos dentro de `CartProvider`:
+  - `useState(() => { ... })` con función inicial → **leer** una sola vez al arrancar.
+  - `useEffect(..., [items])` → **guardar** cada vez que cambia.
+- `useRef` como "caja" que persiste entre renders sin causar un re-render al cambiar (contraste directo con `useState`). Aquí lo usamos para apuntar a elementos del DOM.
 
 Archivos guía:
-- [`src/hooks/useLocalStorage.js`](./src/hooks/useLocalStorage.js) — constrúyanlo en vivo: empieza como un `useState` normal y va creciendo hasta sincronizar con `localStorage` en un `useEffect`.
-- Muestra cómo `CartContext` cambia de `useState([])` a `useLocalStorage('soundgear-carrito', [])` con **una sola línea**.
-- [`src/components/QuantityStepper.jsx`](./src/components/QuantityStepper.jsx) — buen ejemplo de componente controlado y reutilizable (se usa en detalle de producto Y en el carrito).
+- [`src/context/CartContext.jsx`](./src/context/CartContext.jsx) — constrúyanlo en vivo: empieza con `useState([])` a secas y luego agreguen las dos piezas de `localStorage`.
+- [`src/components/QuantityStepper.jsx`](./src/components/QuantityStepper.jsx) — componente controlado y reutilizable (se usa en detalle de producto Y en el carrito).
 
 Demo en vivo: agregar productos al carrito, refrescar la página (F5) y
 mostrar que el carrito sigue ahí — es el momento "wow" de la hora.
+Después abran DevTools → Application → Local Storage y muestren el JSON.
 
 ---
 
@@ -103,18 +122,21 @@ mostrar que el carrito sigue ahí — es el momento "wow" de la hora.
 
 ### React Router (~20 min)
 - `<BrowserRouter>`, `<Routes>`, `<Route>`, `<Link>` vs. `<a>` (evita recargar la página completa).
-- `useParams` para leer `:id` de la URL.
+- `useParams` para leer `:id` de la URL (llega como **texto**, de ahí el `Number(id)`).
+- Ruta comodín `path="*"` para el 404.
 - Archivos: [`src/main.jsx`](./src/main.jsx), [`src/App.jsx`](./src/App.jsx), [`src/pages/ProductPage.jsx`](./src/pages/ProductPage.jsx).
 
 ### GSAP (~25 min)
 - Por qué a veces no basta con transiciones CSS (control fino de timing, stagger, secuencias).
-- Patrón: `useRef` para apuntar al elemento + `useEffect` para animar al montar.
-- `gsap.context()` + `.revert()` en el cleanup de `useEffect`: **por qué** (evita animaciones huérfanas si el componente se desmonta, por ejemplo al cambiar de ruta).
-- Contraste importante: una animación disparada por un **evento** (clic en "Agregar") no necesita `useEffect`, solo llamas a `gsap.to(...)` dentro del handler.
+- El patrón son siempre **3 líneas**, escritas dentro del mismo componente:
+  1. `const ref = useRef(null)`
+  2. `<div ref={ref}>` para conectar el ref al elemento
+  3. `useEffect(() => { gsap.from(ref.current, { ... }) }, [])` para animar al montar
+- Contraste importante: una animación disparada por un **evento** (clic en "Agregar") no necesita `useEffect`, solo llamas a `gsap.fromTo(...)` dentro del handler.
 
 Archivos guía:
-- [`src/hooks/useFadeIn.js`](./src/hooks/useFadeIn.js) — animación de entrada reutilizable.
-- [`src/hooks/useStaggerReveal.js`](./src/hooks/useStaggerReveal.js) — animación en cascada para el grid de productos; fíjate cómo el arreglo de dependencias hace que se re-dispare al cambiar el filtro.
+- [`src/pages/Home.jsx`](./src/pages/Home.jsx) — el fade-in del hero: el ejemplo más limpio del patrón `useRef` + `useEffect`.
+- [`src/components/ProductGrid.jsx`](./src/components/ProductGrid.jsx) — animación en cascada (`stagger`); fíjate cómo el arreglo de dependencias `[productos]` hace que se re-dispare al cambiar el filtro. Es el mejor ejemplo vivo de "para qué sirven las dependencias de `useEffect`".
 - [`src/components/ProductCard.jsx`](./src/components/ProductCard.jsx) y [`src/components/Navbar.jsx`](./src/components/Navbar.jsx) — animaciones disparadas por evento (clic en "Agregar", cambio del contador del carrito).
 
 ### react-hot-toast (~5 min)
@@ -130,16 +152,16 @@ Archivos guía:
 ### Ejercicio guiado (~25 min)
 [`src/context/FavoritesContext.jsx`](./src/context/FavoritesContext.jsx) ya
 está resuelto en el repo, pero está escrito para que el grupo lo replique
-desde cero seleccionando el patrón de `CartContext`:
-1. `createContext` + `Provider` con `useLocalStorage`.
-2. Función `toggleFavorite(id)`.
-3. Custom hook `useFavorites()`.
-4. Conectarlo al corazón de `ProductCard` y a una nueva página `/favoritos`.
+desde cero copiando el patrón de `CartContext`:
+1. `createContext()` + `Provider`, con `useState` + los dos pedazos de `localStorage`.
+2. Función `toggleFavorite(id)` — ojo: aquí solo guardamos **ids**, no el producto completo.
+3. Conectarlo al corazón de `ProductCard` con `useContext(FavoritesContext)`.
+4. Crear la página `/favoritos`, que filtra `PRODUCTS` con los ids guardados.
 
 ### Buenas prácticas (~15 min)
-- Estructura de carpetas por responsabilidad (`components/`, `pages/`, `context/`, `hooks/`, `data/`, `utils/`).
+- Estructura de carpetas por responsabilidad (`components/`, `pages/`, `context/`, `data/`, `utils/`).
 - Componentes controlados y props claras vs. estado interno innecesario.
-- `useMemo` en [`src/pages/Home.jsx`](./src/pages/Home.jsx) y [`src/context/CartContext.jsx`](./src/context/CartContext.jsx): cuándo vale la pena memoizar (y cuándo es prematuro).
+- Valores derivados en vez de estado duplicado (`productosFiltrados`, `totalItems`, `totalPrecio`).
 - CSS con variables (`src/index.css`) como "mini design system" sin depender de un framework.
 - Revisar el diseño responsive del proyecto (`src/App.css`, media queries) en el navegador con las devtools en modo móvil.
 
@@ -151,12 +173,16 @@ desde cero seleccionando el patrón de `CartContext`:
 
 ## Retos extra (para después del taller)
 
+Los primeros son de práctica directa; los últimos introducen las abstracciones
+que a propósito **no** usamos en el proyecto, y son el siguiente escalón natural.
+
 - Agregar un buscador que también filtre por descripción, no solo por nombre.
-- Ordenar productos por precio o rating (otro buen caso de uso para `useMemo`).
-- Agregar un modo claro/oscuro con una variable CSS y un `useState` + `useEffect` que la sincronice con `localStorage`.
-- Migrar `CartContext` de varias funciones sueltas a `useReducer` (buen puente hacia Redux/Zustand más adelante).
-- Agregar `useLayoutEffect` en algún lugar y discutir la diferencia con `useEffect`.
+- Ordenar productos por precio o rating con un `<select>` y otro `useState`.
+- Agregar un modo claro/oscuro con una variable CSS y un `useState` + `useEffect` que lo sincronice con `localStorage`.
 - Paginación o "cargar más" en el catálogo.
+- **Custom hooks**: notar que `CartContext` y `FavoritesContext` repiten el mismo código de `localStorage`, y extraerlo a un `useLocalStorage(key, valorInicial)`. Es el mejor ejemplo de por qué existen los custom hooks: primero duplicas, después abstraes.
+- **`useMemo`**: medir si el filtrado de `Home` realmente cuesta algo, y discutir cuándo memoizar vale la pena (y cuándo es optimización prematura).
+- **`useReducer`**: migrar `CartContext` de varias funciones sueltas a un reducer (buen puente hacia Redux/Zustand más adelante).
 
 ## Recursos para compartir con el grupo
 

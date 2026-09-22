@@ -1,18 +1,25 @@
-import { useEffect } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import gsap from 'gsap';
 import toast from 'react-hot-toast';
 import { FiTrash2, FiShoppingBag } from 'react-icons/fi';
 import { QuantityStepper } from '../components/QuantityStepper';
-import { useCart } from '../context/CartContext';
-import { useFadeIn } from '../hooks/useFadeIn';
+import { CartContext } from '../context/CartContext';
 import { formatPrice } from '../utils/format';
 
 export function CartPage() {
-  const { items, updateQuantity, removeItem, clearCart, totalPrecio } = useCart();
-  const listRef = useFadeIn({ y: 16 });
+  const { items, updateQuantity, removeItem, clearCart, totalPrecio } =
+    useContext(CartContext);
+
+  const listRef = useRef(null);
 
   useEffect(() => {
     document.title = 'Tu carrito · SoundGear';
+  }, []);
+
+  useEffect(() => {
+    if (!listRef.current) return;
+    gsap.from(listRef.current, { opacity: 0, y: 16, duration: 0.6, ease: 'power2.out' });
   }, []);
 
   function handleCheckout() {
@@ -20,6 +27,7 @@ export function CartPage() {
     clearCart();
   }
 
+  // Renderizado condicional: si no hay nada, ni siquiera pintamos la lista.
   if (items.length === 0) {
     return (
       <div className="page">

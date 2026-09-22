@@ -1,5 +1,4 @@
-import { createContext, useContext, useMemo } from 'react';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { createContext, useEffect, useState } from 'react';
 
 /**
  * CONTEXT API — el problema que resuelve
@@ -10,82 +9,80 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
  * por props a través de varios componentes intermedios que ni siquiera
  * lo usan ("prop drilling").
  *
- * Con Context creamos un "canal" al que cualquier componente hijo puede
- * suscribirse directamente, sin importar cuántos niveles de profundidad
- * haya entre medio.
+ * Context son 3 piezas, nada más:
+ *   1. createContext()  -> crea el "canal"
+ *   2. <Context.Provider value={...}>  -> pone datos en el canal
+ *   3. useContext(Context)  -> cualquier hijo lee del canal
  */
-const CartContext = createContext(null);
+export const CartContext = createContext();
 
 export function CartProvider({ children }) {
-  // El carrito persiste en localStorage gracias al hook del hour 4.
-  const [items, setItems] = useLocalStorage('soundgear-carrito', []);
+  // 1. Estado normal con useState. La función que le pasamos a useState
+  //    solo corre la PRIMERA vez, para leer lo que había en localStorage.
+  const [items, setItems] = useState(() => {
+    const guardado = localStorage.getItem('soundgear-carrito');
+    return guardado ? JSON.parse(guardado) : [];
+  });
+
+  // 2. Cada vez que el carrito cambia, lo guardamos en localStorage.
+  //    localStorage solo guarda texto, por eso el JSON.stringify.
+  useEffect(() => {
+    localStorage.setItem('soundgear-carrito', JSON.stringify(items));
+  }, [items]);
 
   function addItem(producto, cantidad = 1) {
-    setItems((prev) => {
-      const existente = prev.find((item) => item.id === producto.id);
+    const existente = items.find((item) => item.id === producto.id);
 
-      if (existente) {
-        return prev.map((item) =>
+    if (existente) {
+      // El producto ya estaba: creamos un arreglo NUEVO con la cantidad sumada.
+      setItems(
+        items.map((item) =>
           item.id === producto.id
             ? { ...item, cantidad: item.cantidad + cantidad }
             : item
-        );
-      }
-
-      return [...prev, { ...producto, cantidad }];
-    });
+        )
+      );
+    } else {
+      setItems([...items, { ...producto, cantidad }]);
+    }
   }
 
   function removeItem(id) {
-    setItems((prev) => prev.filter((item) => item.id !== id));
+    setItems(items.filter((item) => item.id !== id));
   }
 
   function updateQuantity(id, cantidad) {
     if (cantidad < 1) return;
-    setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, cantidad } : item))
-    );
+    setItems(items.map((item) => (item.id === id ? { ...item, cantidad } : item)));
   }
 
   function clearCart() {
     setItems([]);
   }
 
-  // useMemo evita recalcular estos totales en cada render si "items"
-  // no cambió. Con pocos productos no se nota, pero es el lugar
-  // correcto para mencionar el concepto de memoización.
-  const { totalItems, totalPrecio } = useMemo(() => {
-    return items.reduce(
-      (acc, item) => ({
-        totalItems: acc.totalItems + item.cantidad,
-        totalPrecio: acc.totalPrecio + item.cantidad * item.precio,
-      }),
-      { totalItems: 0, totalPrecio: 0 }
-    );
-  }, [items]);
+  // Valores derivados: NO son estado, se calculan a partir de "items"
+  // en cada render. Regla útil: si lo puedes calcular, no lo guardes.
+  let totalItems = 0;
+  let totalPrecio = 0;
 
-  const value = {
-    items,
-    addItem,
-    removeItem,
-    updateQuantity,
-    clearCart,
-    totalItems,
-    totalPrecio,
-  };
-
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
-}
-
-/**
- * Custom hook para consumir el contexto. Encapsula el useContext y
- * además avisa con un error claro si alguien lo usa fuera del Provider,
- * en vez de fallar con un mensaje críptico más adelante.
- */
-export function useCart() {
-  const context = useContext(CartContext);
-  if (!context) {
-    throw new Error('useCart debe usarse dentro de <CartProvider>');
+  for (const item of items) {
+    totalItems += item.cantidad;
+    totalPrecio += item.cantidad * item.precio;
   }
-  return context;
+
+  return (
+    <CartContext.Provider
+      value={{
+        items,
+        addItem,
+        removeItem,
+        updateQuantity,
+        clearCart,
+        totalItems,
+        totalPrecio,
+      }}
+    >
+      {children}
+    </CartContext.Provider>
+  );
 }

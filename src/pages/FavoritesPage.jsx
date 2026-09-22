@@ -1,18 +1,19 @@
-import { useEffect, useMemo } from 'react';
+import { useContext, useEffect } from 'react';
 import { ProductGrid } from '../components/ProductGrid';
 import { PRODUCTS } from '../data/products';
-import { useFavorites } from '../context/FavoritesContext';
+import { FavoritesContext } from '../context/FavoritesContext';
 
 export function FavoritesPage() {
-  const { favoritos } = useFavorites();
+  const { favoritos } = useContext(FavoritesContext);
 
   useEffect(() => {
     document.title = 'Tus favoritos · SoundGear';
   }, []);
 
-  const productosFavoritos = useMemo(
-    () => PRODUCTS.filter((producto) => favoritos.includes(producto.id)),
-    [favoritos]
+  // "favoritos" solo guarda ids, así que filtramos PRODUCTS para
+  // quedarnos con los productos completos.
+  const productosFavoritos = PRODUCTS.filter((producto) =>
+    favoritos.includes(producto.id)
   );
 
   return (
