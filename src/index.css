@@ -1,20 +1,3 @@
-/* ============================================================
-   TAILWIND + TOKENS DEL DISEÑO
-
-   Tailwind v4 se configura desde el propio CSS: no existe
-   tailwind.config.js. Solo hay dos cosas aquí:
-
-   1. @import "tailwindcss"  -> trae todas las utilidades.
-   2. @theme { ... }         -> define nuestros "tokens".
-
-   Lo importante del bloque @theme: Tailwind genera utilidades a
-   partir de los nombres. Al escribir --color-primary obtenemos
-   gratis bg-primary, text-primary, border-primary, etc.
-
-   Para cambiarle el look a TODA la app, se editan estos tokens
-   y nada más. Es la mejor demo de por qué existe un design system.
-   ============================================================ */
-
 @import 'tailwindcss';
 
 @theme {
