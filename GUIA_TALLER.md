@@ -26,6 +26,7 @@ Ritmo sugerido: 6 bloques de ~50 min + 10 min de descanso/preguntas.
 
 Temas a explicar:
 - Qué resuelve Vite (dev server + HMR instantáneo) vs. herramientas más lentas.
+- Tailwind en 2 minutos: las clases del `className` son utilidades de una sola propiedad (`flex`, `gap-4`, `text-primary`). No hace falta explicarlo todo — se va explicando según aparece.
 - `index.html` → `main.jsx` → `App.jsx`: el punto de entrada de una SPA.
 - JSX no es HTML: es azúcar sintáctica sobre `React.createElement`.
 - Componentes funcionales como funciones que devuelven JSX.
@@ -128,14 +129,61 @@ Después abran DevTools → Application → Local Storage y muestren el JSON.
 
 ### GSAP (~25 min)
 - Por qué a veces no basta con transiciones CSS (control fino de timing, stagger, secuencias).
-- El patrón son siempre **3 líneas**, escritas dentro del mismo componente:
+- Arranca mostrando el `Loader`: es la animación más llamativa del proyecto y engancha al grupo antes de entrar a la teoría.
+- El patrón son siempre **3 pasos**, escritos dentro del mismo componente:
   1. `const ref = useRef(null)`
   2. `<div ref={ref}>` para conectar el ref al elemento
-  3. `useEffect(() => { gsap.from(ref.current, { ... }) }, [])` para animar al montar
+  3. `useEffect(() => { gsap.fromTo(ref.current, { desde }, { hasta }) }, [])` para animar al montar
+- **Usa siempre `fromTo`, no `from`.** `gsap.from(el, { opacity: 0 })` adivina el estado final leyendo el DOM en ese instante. `gsap.fromTo(el, { opacity: 0 }, { opacity: 1 })` lo declara. La diferencia importa por lo que viene abajo.
 - Contraste importante: una animación disparada por un **evento** (clic en "Agregar") no necesita `useEffect`, solo llamas a `gsap.fromTo(...)` dentro del handler.
+- **La función de cleanup de `useEffect`**: lo que devuelves de un `useEffect` corre cuando el componente desaparece. El proyecto tiene los dos casos clásicos juntos — `.kill()` de una animación infinita en `Loader.jsx` y `clearTimeout` en `App.jsx`. Regla para el grupo: *si tu efecto arranca algo que sigue corriendo solo (una animación infinita, un temporizador, una suscripción), tienes que apagarlo en el cleanup.*
+
+> **Tema de oro para esta hora: `<StrictMode>` y los efectos.**
+> React monta cada componente **dos veces** en desarrollo (monta → desmonta →
+> remonta) justo para exponer efectos que no son repetibles. Es el mejor
+> momento del taller para explicar por qué un `useEffect` debe poder correr
+> más de una vez sin romperse.
+>
+> Demo en vivo: cambia un `fromTo` por `from` en `Home.jsx` y guarda. La
+> página se queda casi invisible, porque en el segundo montaje `from` lee la
+> opacidad a medio animar (~0.03) y la toma como destino. Vuelve a `fromTo`
+> y todo funciona. Es un bug real, visual e inmediato — mucho más efectivo
+> que explicar StrictMode en abstracto.
+>
+> Nota: la alternativa "profesional" es envolver todo en `gsap.context()` y
+> llamar a `.revert()` en el cleanup del `useEffect`. Hace lo mismo, pero
+> agrega dos conceptos; con `fromTo` el problema simplemente no existe. Si
+> el grupo va sobrado de tiempo, menciónalo.
 
 Archivos guía:
-- [`src/pages/Home.jsx`](./src/pages/Home.jsx) — el fade-in del hero: el ejemplo más limpio del patrón `useRef` + `useEffect`.
+- [`src/components/Loader.jsx`](./src/components/Loader.jsx) — la pantalla de carga: un ecualizador de audio de 5 barras. **Empieza por aquí**: es el ejemplo más vistoso de `stagger` (las 5 barras son idénticas, GSAP desfasa cada una solo) y de `repeat: -1` + `yoyo`. Al ser una animación infinita, es también el caso donde el **cleanup** (`.kill()`) se vuelve obligatorio.
+- [`src/App.jsx`](./src/App.jsx) — cómo se usa: cada ruta que quiere pantalla de carga envuelve su página en `<Loader ms={...}>`. Inicio usa 1600ms, el detalle de producto 800ms, y carrito/favoritos no lo usan. Todo el estado y el temporizador viven **dentro** del Loader; aquí solo se decide quién lo usa y por cuánto tiempo.
+
+> **Tema de diseño de componentes: `children` y componentes autocontenidos.**
+> El `Loader` no le pide nada a quien lo usa más que un número. Guarda su
+> propio `useState`, su propio `setTimeout`, y cuando termina renderiza sus
+> `children`. Es el mismo patrón que ya vieron en `CartProvider`: un
+> componente que envuelve a otros y decide qué hacer con ellos.
+>
+> Ejercicio de 2 minutos: cambiar `ms={1600}` por `ms={5000}` y ver que no
+> hay que tocar nada más. Y como `ms` tiene valor por defecto, `<Loader>`
+> a secas también funciona.
+>
+> Pregunta para el grupo: *¿por qué el Loader envuelve a la página en vez
+> de ponerse al lado?* Porque así la página **no se monta** hasta que
+> termina la carga, y sus animaciones de entrada (el hero, el stagger del
+> grid) se reproducen justo cuando el usuario empieza a ver la pantalla,
+> no detrás del ecualizador.
+>
+> **Y por eso el `<Loader>` va por fuera de la página, en la ruta, y no
+> dentro del archivo de la página.** Es un error muy fácil de cometer y
+> vale la pena mostrarlo en vivo: si mueves el `<Loader>` dentro de
+> `Home.jsx`, el `useEffect` del hero corre cuando monta `Home` — pero
+> el `<section ref={heroRef}>` todavía no existe, porque los children del
+> Loader no se renderizan durante la carga. `heroRef.current` es `null` y
+> el hero se queda sin animación. Regla general: **un `ref` solo existe
+> cuando el elemento está montado en pantalla.**
+- [`src/pages/Home.jsx`](./src/pages/Home.jsx) — el fade-in del hero: el ejemplo más limpio del patrón `useRef` + `useEffect` + `fromTo`.
 - [`src/components/ProductGrid.jsx`](./src/components/ProductGrid.jsx) — animación en cascada (`stagger`); fíjate cómo el arreglo de dependencias `[productos]` hace que se re-dispare al cambiar el filtro. Es el mejor ejemplo vivo de "para qué sirven las dependencias de `useEffect`".
 - [`src/components/ProductCard.jsx`](./src/components/ProductCard.jsx) y [`src/components/Navbar.jsx`](./src/components/Navbar.jsx) — animaciones disparadas por evento (clic en "Agregar", cambio del contador del carrito).
 
@@ -162,8 +210,10 @@ desde cero copiando el patrón de `CartContext`:
 - Estructura de carpetas por responsabilidad (`components/`, `pages/`, `context/`, `data/`, `utils/`).
 - Componentes controlados y props claras vs. estado interno innecesario.
 - Valores derivados en vez de estado duplicado (`productosFiltrados`, `totalItems`, `totalPrecio`).
-- CSS con variables (`src/index.css`) como "mini design system" sin depender de un framework.
-- Revisar el diseño responsive del proyecto (`src/App.css`, media queries) en el navegador con las devtools en modo móvil.
+- Tailwind CSS v4: utilidades en el `className` en vez de archivos CSS por componente. Mostrar que no hay `tailwind.config.js` — todo se configura desde `src/index.css`.
+- El bloque `@theme` de [`src/index.css`](./src/index.css) como "mini design system": cambiar `--color-primary` y ver cómo se actualiza toda la app. Es la mejor demo de por qué existen los tokens.
+- Revisar el diseño responsive en el navegador con las devtools en modo móvil, y mostrar los prefijos de Tailwind (`sm:px-6`, `min-[780px]:grid-cols-...`).
+- Cuándo extraer: si una cadena de clases se repite mucho, se guarda en una constante (`linkBase` en `Navbar.jsx`, `btnClases` en `QuantityStepper.jsx`) o se hace un componente.
 
 ### Cierre (~10 min)
 - `npm run build` en vivo + mención de cómo desplegarlo (Vercel/Netlify: conectar el repo y listo, detectan Vite automáticamente).
@@ -176,6 +226,7 @@ desde cero copiando el patrón de `CartContext`:
 Los primeros son de práctica directa; los últimos introducen las abstracciones
 que a propósito **no** usamos en el proyecto, y son el siguiente escalón natural.
 
+- Hacer que el `Loader` aparezca también al cambiar de página, no solo al abrir la app.
 - Agregar un buscador que también filtre por descripción, no solo por nombre.
 - Ordenar productos por precio o rating con un `<select>` y otro `useState`.
 - Agregar un modo claro/oscuro con una variable CSS y un `useState` + `useEffect` que lo sincronice con `localStorage`.

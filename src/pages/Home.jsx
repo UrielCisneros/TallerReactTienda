@@ -19,8 +19,17 @@ export function Home() {
   // --- Hora 5: useRef apunta a un elemento del DOM para animarlo con GSAP ---
   const heroRef = useRef(null);
 
+  // fromTo = "desde este estado" -> "hasta este otro".
+  // Siempre declaramos el estado final (opacity: 1, y: 0) en vez de usar
+  // gsap.from, que lo adivina leyendo el DOM. Así la animación termina
+  // igual aunque el efecto corra dos veces (React lo hace a propósito en
+  // modo desarrollo con <StrictMode>).
   useEffect(() => {
-    gsap.from(heroRef.current, { opacity: 0, y: 16, duration: 0.6, ease: 'power2.out' });
+    gsap.fromTo(
+      heroRef.current,
+      { opacity: 0, y: 16 },
+      { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }
+    );
   }, []);
 
   // Filtrado: una variable normal, calculada en cada render.
@@ -35,17 +44,11 @@ export function Home() {
   });
 
   return (
-    <div className="page">
-      <div className="container">
-        <section ref={heroRef} className="hero">
-          <h1>Equipa tu estudio</h1>
-          <p>
-            Auriculares, controladores, interfaces y sintetizadores para llevar tus
-            producciones al siguiente nivel.
-          </p>
-        </section>
-
-        <div className="toolbar">
+    <div className="flex-1 pb-20">
+      <div className="mx-auto w-full max-w-app px-4 sm:px-6">
+        {/* Barra de herramientas: búsqueda + filtros, agrupadas en un
+            panel para que se lean como una sola unidad. */}
+        <div className="mb-10 flex flex-col gap-4 rounded-md border mt-4 border-border bg-surface/50 p-4 backdrop-blur-sm">
           <SearchBar value={busqueda} onChange={setBusqueda} />
           <CategoryFilter
             categorias={CATEGORIES}
@@ -54,10 +57,15 @@ export function Home() {
           />
         </div>
 
-        <h2 className="section-title">
-          {categoria === 'Todos' ? 'Todos los productos' : categoria}{' '}
-          <span className="text-muted">({productosFiltrados.length})</span>
-        </h2>
+        <div className="mb-6 flex items-baseline justify-between gap-4">
+          <h2 className="text-xl font-bold tracking-tight sm:text-2xl">
+            {categoria === 'Todos' ? 'Todos los productos' : categoria}
+          </h2>
+          <span className="shrink-0 text-sm text-text-muted">
+            {productosFiltrados.length}{' '}
+            {productosFiltrados.length === 1 ? 'resultado' : 'resultados'}
+          </span>
+        </div>
 
         <ProductGrid productos={productosFiltrados} />
       </div>

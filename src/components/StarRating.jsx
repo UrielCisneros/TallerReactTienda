@@ -9,11 +9,16 @@ export function StarRating({ value }) {
   const estrellas = Array.from({ length: 5 }, (_, i) => i < Math.round(value));
 
   return (
-    <div className="star-rating" aria-label={`${value} de 5 estrellas`}>
-      {estrellas.map((llena, i) =>
-        llena ? <FaStar key={i} /> : <FaRegStar key={i} />
-      )}
-      <span className="star-rating-value">{value.toFixed(1)}</span>
+    <div
+      className="flex items-center gap-1 text-xs"
+      aria-label={`${value} de 5 estrellas`}
+    >
+      <div className="flex gap-0.5 text-star">
+        {estrellas.map((llena, i) =>
+          llena ? <FaStar key={i} /> : <FaRegStar key={i} className="opacity-40" />
+        )}
+      </div>
+      <span className="font-medium text-text-muted">{value.toFixed(1)}</span>
     </div>
   );
 }

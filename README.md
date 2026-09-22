@@ -39,10 +39,10 @@ npm run lint     # linting con oxlint
 - **React 19 + Vite** — herramienta de build y dev server.
 - **React Router** — navegación entre Inicio, Detalle de producto, Carrito y Favoritos.
 - **Context API** (`CartContext`, `FavoritesContext`) — estado global sin prop drilling, en su forma más básica: `createContext` + `Provider` + `useContext`.
-- **GSAP** — animaciones de entrada, stagger y micro-interacciones, escritas con `useRef` + `useEffect` dentro de cada componente.
+- **GSAP** — pantalla de carga (ecualizador animado), animaciones de entrada, stagger y micro-interacciones, escritas con `useRef` + `useEffect` dentro de cada componente.
 - **react-hot-toast** — notificaciones.
 - **react-icons** — iconografía.
-- **CSS plano con variables** — sin frameworks de estilos, para mantener el foco en React/JS.
+- **Tailwind CSS v4** — estilos con utilidades directamente en el JSX. Se configura desde `src/index.css` (bloque `@theme`), sin `tailwind.config.js`.
 
 ## Estructura
 
@@ -54,4 +54,18 @@ src/
 ├─ data/         # datos mock de productos
 └─ utils/        # helpers puros (formato de moneda)
 ```
+
+## Estilos
+
+No hay archivos CSS por componente: cada componente lleva sus clases de
+Tailwind en el `className`. El único CSS del proyecto es
+[`src/index.css`](./src/index.css), que hace dos cosas:
+
+1. `@import "tailwindcss"` — trae las utilidades.
+2. `@theme { ... }` — define los tokens del diseño (colores, radios,
+   ancho máximo, tipografía). Tailwind genera las utilidades a partir de
+   los nombres: `--color-primary` produce `bg-primary`, `text-primary`,
+   `border-primary`, etc.
+
+Para cambiar la paleta del proyecto entero, se editan esos tokens y nada más.
 # TallerReactTienda
