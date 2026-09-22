@@ -20,22 +20,9 @@
 function App() {
   return (
     <main className="mx-auto flex w-full max-w-app flex-1 flex-col items-center justify-center gap-4 px-4 py-20 text-center">
-      <span className="rounded-sm border border-border bg-surface px-3 py-1 text-xs font-semibold tracking-widest text-text-muted uppercase">
-        Taller de React
-      </span>
-
       <h1 className="text-4xl font-extrabold sm:text-5xl">
-        Todo listo para <span className="text-primary">programar</span>
+        Proyecto funcionando <span className="text-primary">a programar</span>
       </h1>
-
-      <p className="max-w-xl text-text-muted">
-        Abre{' '}
-        <code className="rounded-sm bg-surface px-1.5 py-0.5 text-text">
-          src/App.jsx
-        </code>{' '}
-        y empieza a escribir. Guarda el archivo y el navegador se actualiza
-        solo.
-      </p>
     </main>
   );
 }
