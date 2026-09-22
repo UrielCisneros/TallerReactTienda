@@ -10,6 +10,8 @@ puedes volver en cualquier momento, o como punto de partida si prefieres
 hacer un `git init` y armar el proyecto commit por commit durante el taller.
 
 Ritmo sugerido: 6 bloques de ~50 min + 10 min de descanso/preguntas.
+El desglose minuto a minuto, con los checkpoints de cada hora, está en
+[`CRONOGRAMA.md`](./CRONOGRAMA.md).
 
 > **Nota sobre el nivel.** El proyecto está escrito a propósito con el mínimo
 > de abstracciones: no hay custom hooks, ni `useMemo`, ni `useReducer`, ni
