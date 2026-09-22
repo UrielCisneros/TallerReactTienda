@@ -216,7 +216,7 @@ desde cero copiando el patrón de `CartContext`:
 - Cuándo extraer: si una cadena de clases se repite mucho, se guarda en una constante (`linkBase` en `Navbar.jsx`, `btnClases` en `QuantityStepper.jsx`) o se hace un componente.
 
 ### Cierre (~10 min)
-- `npm run build` en vivo + mención de cómo desplegarlo (Vercel/Netlify: conectar el repo y listo, detectan Vite automáticamente).
+- `pnpm build` en vivo + mención de cómo desplegarlo (Vercel/Netlify: conectar el repo y listo, detectan Vite automáticamente).
 - Retos para practicar después del taller (ver abajo).
 
 ---

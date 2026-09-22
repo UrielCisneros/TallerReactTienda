@@ -1,55 +1,42 @@
-import { Route, Routes } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
-import { Loader } from "./components/Loader";
-import { Navbar } from "./components/Navbar";
-import { Footer } from "./components/Footer";
-import { Home } from "./pages/Home";
-import { ProductPage } from "./pages/ProductPage";
-import { CartPage } from "./pages/CartPage";
-import { FavoritesPage } from "./pages/FavoritesPage";
-import { NotFound } from "./pages/NotFound";
-import { CartProvider } from "./context/CartContext";
-import { FavoritesProvider } from "./context/FavoritesContext";
-
 /**
- * Los Providers envuelven TODA la app aquí arriba, en el componente raíz.
- * Así, cualquier componente en cualquier página (Navbar, ProductCard,
- * CartPage...) puede leer el carrito y los favoritos con useContext,
- * sin recibir nada por props.
+ * Punto de partida del taller.
  *
- * PANTALLA DE CARGA
- * Cada ruta decide si quiere una: basta con envolver su página en
- * <Loader>. El carrito y favoritos no la usan, y aparecen al instante.
+ * Este archivo es el componente raíz: todo lo que construyamos cuelga de aquí.
+ * Bórralo sin miedo y empieza a escribir tu propia app.
  *
- * Ojo a un detalle importante: el <Loader> va POR FUERA de la página,
- * nunca adentro. Así la página no se monta hasta que termina la carga,
- * y sus animaciones de entrada (el hero de Home, el stagger del grid)
- * se reproducen justo cuando el usuario empieza a verlas. Si el Loader
- * estuviera dentro de Home, el useEffect del hero correría antes de que
- * el elemento existiera y heroRef.current sería null.
+ * Ya está listo (no hace falta instalar nada más):
+ *   - React 19 + Vite
+ *   - Tailwind v4 con los tokens del diseño en src/index.css
+ *   - React Router (main.jsx ya envuelve la app en <BrowserRouter>)
+ *   - GSAP, react-hot-toast y react-icons
+ *   - Datos de ejemplo en src/data/products.js
+ *
+ * Carpetas sugeridas:
+ *   src/components/  piezas de UI reutilizables (reciben props)
+ *   src/pages/       una página por ruta
+ *   src/context/     estado global (carrito, favoritos...)
+ *   src/utils/       funciones puras (formatear precios, etc.)
  */
 function App() {
   return (
-    <Loader ms={1600}>
-      <CartProvider>
-        <FavoritesProvider>
-          <Navbar />
+    <main className="mx-auto flex w-full max-w-app flex-1 flex-col items-center justify-center gap-4 px-4 py-20 text-center">
+      <span className="rounded-sm border border-border bg-surface px-3 py-1 text-xs font-semibold tracking-widest text-text-muted uppercase">
+        Taller de React
+      </span>
 
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/producto/:id" element={<ProductPage />} />
-            <Route path="/carrito" element={<CartPage />} />
-            <Route path="/favoritos" element={<FavoritesPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+      <h1 className="text-4xl font-extrabold sm:text-5xl">
+        Todo listo para <span className="text-primary">programar</span>
+      </h1>
 
-          <Footer />
-
-          {/* Librería #4: notificaciones "toast" con una sola línea. */}
-          <Toaster position="bottom-center" toastOptions={{ duration: 2500 }} />
-        </FavoritesProvider>
-      </CartProvider>
-    </Loader>
+      <p className="max-w-xl text-text-muted">
+        Abre{' '}
+        <code className="rounded-sm bg-surface px-1.5 py-0.5 text-text">
+          src/App.jsx
+        </code>{' '}
+        y empieza a escribir. Guarda el archivo y el navegador se actualiza
+        solo.
+      </p>
+    </main>
   );
 }
 

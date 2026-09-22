@@ -1,71 +1,85 @@
-# SoundGear — Proyecto para taller de React + Vite
+# Taller de React + Vite — proyecto base
 
-Mini tienda en línea (estilo Amazon) de equipo de audio, construida como
-proyecto guía para un taller de programación de 6 horas. Cubre componentes,
-props, hooks (`useState`, `useEffect`, `useContext` y `useRef`), enrutamiento
-con React Router, animaciones con GSAP, notificaciones con react-hot-toast y
-persistencia en `localStorage`.
+Cascarón listo para empezar a programar en el taller. Trae el entorno ya
+armado (Vite, Tailwind, Router, GSAP, toasts, iconos y datos de ejemplo),
+pero **sin la app hecha**: esa la construimos durante las 6 horas del taller.
 
-El código está escrito a propósito con el mínimo de abstracciones (sin custom
-hooks, sin `useMemo`, sin `useReducer`): la idea es que cada componente se
-pueda leer de arriba a abajo sin saltar entre archivos.
-
-La guía completa hora por hora está en [`GUIA_TALLER.md`](./GUIA_TALLER.md).
+La guía completa, hora por hora, está en [`GUIA_TALLER.md`](./GUIA_TALLER.md).
 
 ## Requisitos
 
-- Node.js 18 o superior
-- npm
+- [Node.js](https://nodejs.org) 20 o superior
+- [pnpm](https://pnpm.io/installation) (`npm install -g pnpm`)
 
-## Cómo correrlo
+## Cómo empezar
 
 ```bash
-npm install
-npm run dev
+pnpm i
+pnpm dev
 ```
 
-Abre la URL que imprime Vite (por defecto `http://localhost:5173`).
+Abre la URL que imprime Vite (por defecto `http://localhost:5173`) y edita
+[`src/App.jsx`](./src/App.jsx). Al guardar, el navegador se actualiza solo.
 
 Otros comandos:
 
 ```bash
-npm run build    # build de producción
-npm run preview  # sirve el build de producción localmente
-npm run lint     # linting con oxlint
+pnpm build    # build de producción
+pnpm preview  # sirve el build de producción localmente
+pnpm lint     # linting con oxlint
 ```
 
-## Stack
+## Qué trae ya instalado
 
 - **React 19 + Vite** — herramienta de build y dev server.
-- **React Router** — navegación entre Inicio, Detalle de producto, Carrito y Favoritos.
-- **Context API** (`CartContext`, `FavoritesContext`) — estado global sin prop drilling, en su forma más básica: `createContext` + `Provider` + `useContext`.
-- **GSAP** — pantalla de carga (ecualizador animado), animaciones de entrada, stagger y micro-interacciones, escritas con `useRef` + `useEffect` dentro de cada componente.
+- **React Router** — `main.jsx` ya envuelve la app en `<BrowserRouter>`, solo
+  faltan tus `<Routes>`.
+- **Tailwind CSS v4** — estilos con utilidades en el JSX. Se configura desde
+  `src/index.css` (bloque `@theme`), sin `tailwind.config.js`.
+- **GSAP** — animaciones.
 - **react-hot-toast** — notificaciones.
 - **react-icons** — iconografía.
-- **Tailwind CSS v4** — estilos con utilidades directamente en el JSX. Se configura desde `src/index.css` (bloque `@theme`), sin `tailwind.config.js`.
+- **oxlint** — linter.
 
 ## Estructura
 
 ```
 src/
-├─ components/   # piezas de UI reutilizables (props, sin lógica de negocio)
-├─ pages/        # una página por ruta
-├─ context/      # Context API (carrito y favoritos) + persistencia
-├─ data/         # datos mock de productos
-└─ utils/        # helpers puros (formato de moneda)
+├─ App.jsx        # componente raíz: aquí empiezas
+├─ main.jsx       # arranque de la app (StrictMode + BrowserRouter)
+├─ index.css      # Tailwind + tokens del diseño
+├─ components/    # (vacía) piezas de UI reutilizables
+├─ pages/         # (vacía) una página por ruta
+├─ context/       # (vacía) estado global con Context API
+├─ data/          # productos de ejemplo (mock data)
+├─ utils/         # helpers puros (formato de moneda)
+└─ assets/        # (vacía) imágenes y estáticos importados
+```
+
+Las carpetas vacías traen un archivo `.gitkeep` para que git las conserve;
+puedes borrarlo en cuanto agregues tu primer archivo.
+
+## Datos de ejemplo
+
+[`src/data/products.js`](./src/data/products.js) exporta `PRODUCTS` (20
+productos con `id`, `nombre`, `categoria`, `precio`, `rating`, `descripcion`
+e `imagen`) y `CATEGORIES`. Es mock data: en una app real vendría de una API,
+pero aquí nos interesa el frontend, no montar un backend.
+
+```js
+import { PRODUCTS, CATEGORIES } from './data/products';
 ```
 
 ## Estilos
 
-No hay archivos CSS por componente: cada componente lleva sus clases de
-Tailwind en el `className`. El único CSS del proyecto es
+No hay un CSS por componente: cada componente lleva sus clases de Tailwind en
+el `className`. El único CSS del proyecto es
 [`src/index.css`](./src/index.css), que hace dos cosas:
 
 1. `@import "tailwindcss"` — trae las utilidades.
-2. `@theme { ... }` — define los tokens del diseño (colores, radios,
-   ancho máximo, tipografía). Tailwind genera las utilidades a partir de
-   los nombres: `--color-primary` produce `bg-primary`, `text-primary`,
+2. `@theme { ... }` — define los tokens del diseño (colores, radios, sombras,
+   ancho máximo, tipografía). Tailwind genera las utilidades a partir de los
+   nombres: `--color-primary` produce `bg-primary`, `text-primary`,
    `border-primary`, etc.
 
-Para cambiar la paleta del proyecto entero, se editan esos tokens y nada más.
-# TallerReactTienda
+Para cambiarle la paleta al proyecto entero, se editan esos tokens y nada más.
