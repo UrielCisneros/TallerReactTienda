@@ -2,6 +2,7 @@ import { SearchBar } from "../components/SearchBar";
 import { CategoryFilter } from "../components/CategoryFilter";
 import { CATEGORIES } from "../data/products";
 import { Navbar } from "../components/Navbar";
+import { Footer } from "../components/Footer";
 
 export const Home = () => {
   return (
@@ -14,6 +15,7 @@ export const Home = () => {
           <p>Listar los productos</p>
         </div>
       </div>
+      <Footer />
     </>
   );
 };
