@@ -1,6 +1,3 @@
-// Datos "falsos" (mock data). En una app real esto vendría de una API,
-// pero para el taller nos interesa el FRONTEND, no montar un backend.
-// Así cualquier alumno puede clonar el proyecto y correrlo sin configurar nada.
 
 export const CATEGORIES = [
   'Todos',
